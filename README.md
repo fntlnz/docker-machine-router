@@ -1,6 +1,6 @@
 # Docker Machine Router
 
-This tool allows you to reach the container's internal ip address from the host by just using the `-p` option available in the docker `run` command.
+This tool allows you to reach the container's internal ip addresses from the host by routing the host traffic trough the Docker Machine VM.
 
 ## How does it work
 
