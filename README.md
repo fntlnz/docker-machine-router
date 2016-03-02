@@ -1,8 +1,11 @@
 # Docker Machine Router
+[![asciicast](https://asciinema.org/a/38130.png)](https://asciinema.org/a/38130)
 
 This tool allows you to reach the container's internal ip addresses from the host by routing the host traffic trough the Docker Machine VM.
 
 ## How does it work
+
+![host-vm-container](docs/host-vm-container.png)
 
 The [Docker documentation](https://docs.docker.com/engine/reference/run/#expose-incoming-ports) states:
 
