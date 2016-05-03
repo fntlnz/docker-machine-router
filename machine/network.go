@@ -1,4 +1,4 @@
-package network
+package machine
 
 import docker "github.com/fsouza/go-dockerclient"
 
