@@ -31,7 +31,7 @@ The default cidr is `10.18.0.0/16` you can change it using the `-cidr` option:
 sudo -E ./dist/docker-machine-router -cidr="10.20.0.0/16"
 ```
 
-### Start a container using the `dmr` network and assigning a custom.
+### Start a container using the `dmr` network and assigning a custom IP.
 
 Here we are starting a container using the `nginx` image and the `dmr` network (The one provided by `docker-machine-router`).
 
