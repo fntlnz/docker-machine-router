@@ -1,38 +1,63 @@
 # Docker Machine Router
-[![asciicast](https://asciinema.org/a/38130.png)](https://asciinema.org/a/38130)
 
-This tool allows you to reach the container's internal ip addresses from the host by routing the host traffic trough the Docker Machine VM.
+This tool allows you to **assign an chosen ip address** that is **visible from the OS X host** to your containers.
 
 ## How does it work
 
-![host-vm-container](docs/host-vm-container.png)
-
-The [Docker documentation](https://docs.docker.com/engine/reference/run/#expose-incoming-ports) states:
-
-```
--p=[]      : Publish a container᾿s port or a range of ports to the host
-               format: ip:hostPort:containerPort | ip::containerPort | hostPort:containerPort | containerPort
-               Both hostPort and containerPort can be specified as a
-               range of ports. When specifying ranges for both, the
-               number of container ports in the range must match the
-               number of host ports in the range, for example:
-                   -p 1234-1236:1234-1236/tcp
-```
-
-Unfortunately when using docker machine we can't directly use the format `ip:hostPort:containerPort` because the port is not being opened
-on the host machine but on the Boot2Docker VM.
-
-If for example we start an NGINX container like this:
-
-```
-docker run -p 10.0.0.40:80:80 nginx:latest
-```
-
-The IP will be opened inside the VM therefore we will not able to reach the http server from the host.
-
-`docker-machine-router` has the task of waiting for the creation of new containers and then routes the container IP to the Docker Machine.
 
 ## Usage
+
+Docker machine router relies on the `DOCKER_HOST` environment variable as the Docker client does.
+
+You can export that variable using the `docker-machine env <machine-name>` command.
+
+```
+MACHINE=dev
+eval $(docker-machine env $MACHINE)
+```
+
+Now that all's ready you can create the routes by invoking `docker-machine-router`.
+The `-E` option, tells `sudo` to get all the environment variables.
+
 ```
 sudo -E docker-machine-router
 ```
+
+#### Options
+
+**cidr**
+This is the Class Inter-Domain Routing that `docker-machine-router` will use to create its routes.
+
+The default cidr is `10.18.0.0/16` you can change it using the `-cidr` option:
+
+```
+sudo -E ./dist/docker-machine-router -cidr="10.20.0.0/16"
+```
+
+### Start a container using the `dmr` network and assigning a custom ip `10.18.241.100`.
+Note that also the `127.0.241.100` ip is needed in order to allocate multiple `80` ports on the docker network.
+
+```
+docker run --net dmr --ip 10.18.241.100 -p 127.0.241.100:80:80 -it nginx
+```
+
+### The Same with docker-compose
+
+**docker-compose.yml**
+
+```
+version: "2"
+services:
+  web:
+    image: nginx
+    ports:
+      - "127.18.20.20:80:80"
+    networks:
+      dmr:
+        ipv4_address: "10.18.20.20"
+networks:
+  dmr:
+    external: true
+```
+
+This is the equivalent of what we did with the run command.

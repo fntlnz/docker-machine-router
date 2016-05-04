@@ -56,6 +56,8 @@ func main() {
 	}
 
 	fmt.Println("Connected to: ", os.Getenv("DOCKER_HOST"))
+	fmt.Println("CIDR: ", cidr)
+
 	_, err = machine.CreateNetwork(client, cidr)
 
 	if err != nil {

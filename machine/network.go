@@ -15,21 +15,23 @@ func CreateNetwork(client *docker.Client, cidr string) (*docker.Network, error) 
 		ipamCfg,
 	}
 
+	options := map[string]interface{}{
+		"com.docker.network.bridge.enable_icc":           "true",
+		"com.docker.network.bridge.enable_ip_masquerade": "true",
+		"com.docker.network.bridge.name":                 "docker0",
+	}
+
 	netOpts := docker.CreateNetworkOptions{
-		NETWORK_NAME,
-		false,
-		"bridge",
-		ipamOpts,
-		nil,
-		false,
-		false,
+		Name:           NETWORK_NAME,
+		CheckDuplicate: false,
+		Driver:         "bridge",
+		IPAM:           ipamOpts,
+		Options:        options,
+		Internal:       false,
+		EnableIPv6:     false,
 	}
 
-	n, err := client.NetworkInfo(NETWORK_NAME)
-
-	if err != nil {
-		return nil, err
-	}
+	n, _ := client.NetworkInfo(NETWORK_NAME)
 
 	if n != nil {
 		client.RemoveNetwork(n.ID)
