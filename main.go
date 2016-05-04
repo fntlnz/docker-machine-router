@@ -1,65 +1,94 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"os"
 
-	"github.com/Sirupsen/logrus"
-	"github.com/fntlnz/docker-machine-router/events"
+	"github.com/fntlnz/docker-machine-router/host"
 	"github.com/fntlnz/docker-machine-router/machine"
 	docker "github.com/fsouza/go-dockerclient"
 )
 
-const IP_CLASS = "10.0.0"
+var (
+	cidr string
+)
+
+const (
+	BANNER  = "DOCKER MACHINE ROUTER v%s"
+	version = "0.2.0"
+)
+
+func banner() string {
+	return fmt.Sprintf(BANNER, version)
+}
+func usage() {
+	fmt.Fprintf(os.Stderr, banner(), version)
+	flag.PrintDefaults()
+}
+
+func init() {
+	flag.StringVar(&cidr, "cidr", "10.18.0.0/16", "Used to identify the IP address range that can be allocated by docker-machine-router")
+	flag.Usage = usage
+	flag.Parse()
+}
 
 func main() {
-	logger := logrus.New()
-
 	if os.Getuid() != 0 {
-		logger.Fatal("docker-machine-router must be run as root")
+		fmt.Println("❗  docker-machine-router must be run as root")
+		os.Exit(1)
 	}
 
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Fatal("An error occurred: ", r)
-		}
-	}()
+	fmt.Println(banner())
 
 	client, err := docker.NewClientFromEnv()
 
 	if err != nil {
-		logger.Fatal("An error occurred connecting to the Docker daemon")
+		fmt.Println("❗  An error occurred contacting the Docker daemon: ", err.Error())
+		os.Exit(1)
 	}
 
 	err = client.Ping()
 
 	if err != nil {
-		logger.Fatalf("Can't reach the docker daemon")
+		fmt.Println("❗  Can't reach the docker daemon")
+		os.Exit(1)
 	}
 
-	mc, err := machine.NewMachineCmdExecutor(client)
+	fmt.Println("Connected to: ", os.Getenv("DOCKER_HOST"))
+	fmt.Println("CIDR: ", cidr)
+
+	_, err = machine.CreateNetwork(client, cidr)
 
 	if err != nil {
-		logger.Fatal("An error occurred creating the docker-machine command executor: %s", err.Error())
+		fmt.Println("❗  An error occurred while creating the Docker Network: ", err.Error())
+		os.Exit(1)
 	}
 
-	logger.Info("GC IPs on docker machine")
-	err = mc.DeAllocateIPClass(IP_CLASS)
+	fmt.Println("✅  Created network on Docker machine")
+
+	machineIP, err := machine.MachineIPFromClient(client)
 
 	if err != nil {
-		logger.Warn("Problem occurred GC IPs on docker machine")
+		fmt.Println("❗  An error occurred while trying to obtain the Docker Machine ip address: ", err.Error())
+		os.Exit(1)
 	}
 
-	logger.Info("Preallocating IPs on docker machine")
-	err = mc.PreAllocateIPClass(IP_CLASS)
+	err = host.DeallocateHostIp(machineIP.String(), cidr)
 
 	if err != nil {
-		logger.Warnf("Problem occurred preallocating IPs on docker machine")
+		fmt.Println("❗  An error occurred while garbage collecting the route from the host: ", err.Error())
+		os.Exit(1)
 	}
-
-	listener := events.NewDockerListener(client, logger)
-	err = listener.Listen()
+	fmt.Println("✅  Removed previous allocated routes")
+	err = host.AllocateHostIp(machineIP.String(), cidr)
 
 	if err != nil {
-		logger.Fatal("Error occurred attaching to the Docker daemon event stream: ", err.Error())
+		fmt.Println("❗  An error occurred while creating the route on the host: ", err.Error())
+		os.Exit(1)
 	}
+
+	fmt.Println("✅  Created new routes")
+
+	fmt.Println("🎉  The network has been setup 🎉")
 }
