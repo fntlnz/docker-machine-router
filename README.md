@@ -2,9 +2,6 @@
 
 This tool allows you to **assign an chosen ip address** that is **visible from the OS X host** to your containers.
 
-## How does it work
-
-
 ## Usage
 
 Docker machine router relies on the `DOCKER_HOST` environment variable as the Docker client does.
@@ -34,8 +31,13 @@ The default cidr is `10.18.0.0/16` you can change it using the `-cidr` option:
 sudo -E ./dist/docker-machine-router -cidr="10.20.0.0/16"
 ```
 
-### Start a container using the `dmr` network and assigning a custom ip `10.18.241.100`.
-Note that also the `127.0.241.100` ip is needed in order to allocate multiple `80` ports on the docker network.
+### Start a container using the `dmr` network and assigning a custom.
+
+Here we are starting a container using the `nginx` image and the `dmr` network (The one provided by `docker-machine-router`).
+
+Our container will have two ip addresses, one exposed to the OS X host `10.18.241.100` and one exposed only inside the VM `127.0.241.100`
+
+Note that the ip exposed only in the VM  (`127.0.241.100`)is needed in order to allocate multiple `80` ports on the docker network.
 
 ```
 docker run --net dmr --ip 10.18.241.100 -p 127.0.241.100:80:80 -it nginx
