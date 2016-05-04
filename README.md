@@ -5,7 +5,7 @@ This tool allows you to **assign an chosen ip address** that is **visible from t
 ## Installation
 
 ```
-curl -L https://github.com/fntlnz/docker-machine-router/releases/download/v0.2.0/docker-machine-router > /usr/local/bin/docker-machine-router
+curl -L https://github.com/fntlnz/docker-machine-router/releases/download/v0.2.1/docker-machine-router > /usr/local/bin/docker-machine-router
 chmod +x /usr/local/bin/docker-machine-router
 ```
 
