@@ -29,14 +29,17 @@ sudo -E docker-machine-router
 
 #### Options
 
-**cidr**
-This is the Class Inter-Domain Routing that `docker-machine-router` will use to create its routes.
+**cidr**:
+
+This is the [Class Inter-Domain Routing](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) that `docker-machine-router` will use to create its routes.
 
 The default cidr is `10.18.0.0/16` you can change it using the `-cidr` option:
 
 ```
 sudo -E ./dist/docker-machine-router -cidr="10.20.0.0/16"
 ```
+
+The default cidr: `10.18.0.0/16` allows allocation of ip addresses in the `10.18.0.0 - 10.18.255.255` range, for a total of 65536 addresses.
 
 ### Start a container using the `dmr` network and assigning a custom IP.
 
